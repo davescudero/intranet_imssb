@@ -1,0 +1,506 @@
+// Dr. Alejandro Svarch - Director IMSS Bienestar
+// Portal personal con acceso a recursos y dashboards
+
+const { useState, useEffect, useRef } = React;
+
+const SvarchApp = () => {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // Función para cambiar tema
+  const handleThemeToggle = () => {
+    console.log('Botón de tema clickeado, estado actual:', isDarkMode);
+    const newDarkMode = !isDarkMode;
+    console.log('Nuevo estado:', newDarkMode);
+    setIsDarkMode(newDarkMode);
+    
+    // Aplicar el tema inmediatamente
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('darkMode', 'true');
+      console.log('Aplicado modo oscuro');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('darkMode', 'false');
+      console.log('Aplicado modo claro');
+    }
+    
+    // Reinicializar iconos después del cambio de tema
+    setTimeout(() => {
+      if (window.lucide) {
+        window.lucide.createIcons();
+      }
+    }, 100);
+  };
+
+  // Función para toggle del menú
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  // Inicialización del tema
+  useEffect(() => {
+    // Verificar si hay una preferencia guardada en localStorage
+    const savedDarkMode = localStorage.getItem('darkMode');
+    let initialDarkMode = false;
+
+    if (savedDarkMode !== null) {
+      // Usar la preferencia guardada
+      initialDarkMode = savedDarkMode === 'true';
+    } else {
+      // Detectar preferencia del sistema para modo oscuro
+      initialDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+
+    setIsDarkMode(initialDarkMode);
+
+    // Aplicar tema inicial
+    if (initialDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+
+    // Inicializar iconos de Lucide
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
+
+    // Escuchar cambios en la preferencia del sistema (solo si no hay preferencia guardada)
+    const handler = (e) => {
+      if (localStorage.getItem('darkMode') === null) {
+        setIsDarkMode(e.matches);
+        if (e.matches) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
+    };
+    
+    if (window.matchMedia) {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', handler);
+      return () => window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', handler);
+    }
+  }, []);
+
+  // Reinicializar iconos cuando cambie el tema
+  useEffect(() => {
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
+  }, [isDarkMode]);
+
+  // Manejo del scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Cerrar menú al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isMenuOpen && !event.target.closest('.hamburger-container')) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMenuOpen]);
+
+  // Configuración de recursos desde la configuración global
+  const config = window.SvarchConfig || {};
+  const resources = config.resources || {};
+
+  // Componente de Header minimalista
+  const Header = () => (
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      scrollY > 50 ? 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-sm' : 'bg-transparent'
+    }`}>
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="flex justify-between items-center h-20">
+          {/* Logo y Dirección General */}
+          <div className="flex items-center space-x-4">
+            <div className="w-16 h-16 rounded-lg overflow-hidden shadow-lg">
+              <img 
+                src="resources/logos/Logo IMSS Bienestar 2025.png" 
+                alt="IMSS Bienestar Logo" 
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <div>
+              <h1 className="text-lg font-semibold text-imss-dark dark:text-white font-serif">Dirección General</h1>
+            </div>
+          </div>
+          
+          {/* Controles del header */}
+          <div className="flex items-center space-x-4">
+            {/* Menú hamburguesa */}
+            <div className="relative hamburger-container">
+              <button
+                onClick={toggleMenu}
+                className={`hamburger-button ${isMenuOpen ? 'open' : ''} ${isDarkMode ? 'dark' : ''}`}
+                aria-label="Toggle menu"
+              >
+                <div className="hamburger-line"></div>
+                <div className="hamburger-line"></div>
+                <div className="hamburger-line"></div>
+              </button>
+              
+              {/* Menú hamburguesa */}
+              <div className={`hamburger-menu-large ${isMenuOpen ? 'open' : ''} ${isDarkMode ? 'dark' : ''}`}>
+                <a href="#hero" className="menu-item-large" onClick={() => setIsMenuOpen(false)}>
+                  <i data-lucide="home" className="w-6 h-6 mr-4 inline"></i>
+                  Inicio
+                </a>
+                <a href="#presentaciones" className="menu-item-large" onClick={() => setIsMenuOpen(false)}>
+                  <i data-lucide="presentation" className="w-6 h-6 mr-4 inline"></i>
+                  Presentaciones
+                </a>
+                <a href="#tablas" className="menu-item-large" onClick={() => setIsMenuOpen(false)}>
+                  <i data-lucide="grid-3x3" className="w-6 h-6 mr-4 inline"></i>
+                  Tablas
+                </a>
+                <a href="#dashboard" className="menu-item-large" onClick={() => setIsMenuOpen(false)}>
+                  <i data-lucide="bar-chart-3" className="w-6 h-6 mr-4 inline"></i>
+                  Dashboards
+                </a>
+          </div>
+            </div>
+
+            {/* Botón de tema */}
+            <button
+              onClick={handleThemeToggle}
+              className={`theme-toggle ${isDarkMode ? 'dark' : ''}`}
+              aria-label="Toggle dark mode"
+            >
+              {isDarkMode ? (
+                <svg className="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="5"></circle>
+                  <line x1="12" y1="1" x2="12" y2="3"></line>
+                  <line x1="12" y1="21" x2="12" y2="23"></line>
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                  <line x1="1" y1="12" x2="3" y2="12"></line>
+                  <line x1="21" y1="12" x2="23" y2="12"></line>
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+              ) : (
+                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+
+  // Función para obtener saludo según la hora
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) {
+      return "Buenos días";
+    } else if (hour >= 12 && hour < 18) {
+      return "Buenas tardes";
+    } else {
+      return "Buenas noches";
+    }
+  };
+
+  // Componente de Hero editorial minimalista
+  const Hero = () => (
+    <section id="hero" className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      {/* Imagen de fondo con filtros */}
+      <div className={`hero-background-image ${isDarkMode ? 'dark-theme' : 'light-theme'}`}></div>
+      
+      {/* Overlay para legibilidad */}
+      <div className="hero-image-overlay"></div>
+      
+      {/* Fondo con textura grainy institucional mejorada */}
+      <div className="absolute inset-0 grainy-texture bg-gradient-to-br from-white/80 via-gray-50/80 to-amber-50/80 dark:from-gray-900/80 dark:via-stone-900/80 dark:to-amber-900/80"></div>
+      
+      {/* Overlay con gradientes sutiles */}
+      <div className="absolute inset-0 overlay-gradient-1"></div>
+      <div className="absolute inset-0 overlay-gradient-2"></div>
+      
+      {/* Efecto de partículas sutiles */}
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-imss-primary/20 rounded-full animate-pulse"></div>
+        <div className="absolute top-3/4 right-1/4 w-1 h-1 bg-imss-secondary/20 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+        <div className="absolute top-1/2 left-3/4 w-1.5 h-1.5 bg-imss-accent/20 rounded-full animate-pulse" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-imss-gray/20 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+        </div>
+      
+      {/* Contenido principal */}
+      <div className="relative z-20 max-w-6xl mx-auto px-6 lg:px-8">
+        <div className="text-center">
+          {/* Saludo dinámico */}
+          <div className="mb-8 hero-greeting">
+            <h2 className="text-lg md:text-xl font-light text-imss-primary dark:text-imss-accent mb-3 tracking-wider uppercase font-sans">
+              {getGreeting()}
+            </h2>
+            <div className="w-16 h-px bg-gradient-to-r from-transparent via-imss-primary dark:via-imss-accent to-transparent mx-auto"></div>
+          </div>
+          
+          {/* Nombre y título principal */}
+          <div className="mb-12">
+            <h1 className="text-6xl md:text-8xl font-bold text-imss-dark dark:text-white mb-6 hero-title font-serif leading-tight">
+              Dr. Alejandro Svarch
+            </h1>
+            <div className="w-32 h-px bg-gradient-to-r from-transparent via-imss-gray dark:via-gray-400 to-transparent mx-auto mb-6"></div>
+            <p className="text-2xl md:text-3xl text-imss-secondary dark:text-gray-300 mb-4 hero-subtitle font-serif font-light">
+              Director General de IMSS Bienestar
+            </p>
+          </div>
+          
+          {/* Descripción editorial */}
+          <div className="max-w-4xl mx-auto">
+            <p className="text-lg md:text-xl text-imss-gray dark:text-gray-400 leading-relaxed hero-description font-sans font-light">
+              Repositorio personal para acceso a presentaciones y dashboards ejecutivos
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+
+  // Componente de Dashboard Principal
+  const DashboardSection = () => (
+    <section id="dashboard" className="py-20 bg-gray-50 dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-bold text-imss-dark dark:text-white mb-4 font-serif">
+            Dashboards
+            </h2>
+          <p className="text-xl text-imss-gray dark:text-gray-300 font-sans">
+            Acceso directo a métricas y análisis clave del IMSS Bienestar
+            </p>
+          </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {resources.dashboards?.map((dashboard, index) => (
+            <div 
+              key={index} 
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-200 dark:border-gray-700 hover:border-imss-primary dark:hover:border-imss-accent"
+            >
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-imss-light dark:bg-imss-primary/20 rounded-lg flex items-center justify-center mr-4">
+                  <i data-lucide={dashboard.icon} className="w-6 h-6 text-imss-primary dark:text-imss-accent"></i>
+                    </div>
+                <h3 className="text-xl font-semibold text-imss-dark dark:text-white font-serif">
+                  {dashboard.title}
+                    </h3>
+                    </div>
+              <p className="text-imss-gray dark:text-gray-300 mb-4 font-sans">
+                {dashboard.description}
+              </p>
+              <a
+                href={dashboard.url}
+                target={dashboard.url.startsWith('http') ? '_blank' : '_self'}
+                rel={dashboard.url.startsWith('http') ? 'noopener noreferrer' : ''}
+                className="inline-flex items-center text-imss-primary dark:text-imss-accent hover:text-imss-secondary dark:hover:text-imss-light font-medium transition-colors"
+              >
+                Acceder
+                <i data-lucide={dashboard.url.startsWith('http') ? 'external-link' : 'arrow-right'} className="w-4 h-4 ml-1"></i>
+              </a>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+
+  // Componente de Presentaciones
+  const PresentacionesSection = () => (
+    <section id="presentaciones" className="py-20 bg-white dark:bg-gray-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-bold text-imss-dark dark:text-white mb-4 font-serif">
+            Presentaciones y Reportes
+            </h2>
+          <p className="text-xl text-imss-gray dark:text-gray-300 font-sans">
+            Acceso a presentaciones ejecutivas y reportes de gestión
+            </p>
+          </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {resources.presentations?.map((presentation, index) => (
+            <div 
+              key={index}
+              className="bg-gray-50 dark:bg-gray-900 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-200 dark:border-gray-700 hover:border-imss-secondary dark:hover:border-imss-accent"
+            >
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-imss-light dark:bg-imss-secondary/20 rounded-lg flex items-center justify-center mr-4">
+                  <i data-lucide={presentation.icon} className="w-6 h-6 text-imss-secondary dark:text-imss-accent"></i>
+                </div>
+                <h3 className="text-xl font-semibold text-imss-dark dark:text-white font-serif">
+                  {presentation.title}
+                  </h3>
+                  </div>
+              <p className="text-imss-gray dark:text-gray-300 mb-4 font-sans">
+                {presentation.description}
+              </p>
+              <a
+                href={presentation.url}
+                target={presentation.url.startsWith('http') ? '_blank' : '_self'}
+                rel={presentation.url.startsWith('http') ? 'noopener noreferrer' : ''}
+                className="inline-flex items-center text-imss-secondary dark:text-imss-accent hover:text-imss-primary dark:hover:text-imss-light font-medium transition-colors"
+              >
+                Ver Presentación
+                <i data-lucide={presentation.url.startsWith('http') ? 'external-link' : 'arrow-right'} className="w-4 h-4 ml-1"></i>
+              </a>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+
+  // Componente de Tablas
+  const TablasSection = () => (
+    <section id="tablas" className="py-20 bg-gray-50 dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-bold text-imss-dark dark:text-white mb-4 font-serif">
+            Tablas y Datos
+            </h2>
+          <p className="text-xl text-imss-gray dark:text-gray-300 font-sans">
+            Acceso a tablas de datos, estadísticas y reportes numéricos
+            </p>
+          </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {resources.tables?.map((table, index) => (
+            <div
+              key={index}
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-200 dark:border-gray-700 hover:border-imss-accent dark:hover:border-imss-light"
+            >
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-imss-light dark:bg-imss-accent/20 rounded-lg flex items-center justify-center mr-4">
+                  <i data-lucide={table.icon} className="w-6 h-6 text-imss-accent dark:text-imss-light"></i>
+                </div>
+                <h3 className="text-xl font-semibold text-imss-dark dark:text-white font-serif">
+                  {table.title}
+                </h3>
+              </div>
+              <p className="text-imss-gray dark:text-gray-300 mb-4 font-sans">
+                {table.description}
+              </p>
+              <a
+                href={table.url}
+                target={table.url.startsWith('http') ? '_blank' : '_self'}
+                rel={table.url.startsWith('http') ? 'noopener noreferrer' : ''}
+                className="inline-flex items-center text-imss-accent dark:text-imss-light hover:text-imss-primary dark:hover:text-imss-accent font-medium transition-colors"
+              >
+                Ver Tabla
+                <i data-lucide={table.url.startsWith('http') ? 'external-link' : 'arrow-right'} className="w-4 h-4 ml-1"></i>
+                    </a>
+                  </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+
+  // Componente de Footer
+  const Footer = () => (
+    <footer className="bg-gray-900 dark:bg-black text-white py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div>
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-10 h-10 rounded-lg overflow-hidden">
+                <img 
+                  src="resources/logos/Logo IMSS Bienestar 2025.png" 
+                  alt="IMSS Bienestar Logo" 
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">Dr. Alejandro Svarch</h3>
+                <p className="text-sm text-gray-400">Director IMSS Bienestar</p>
+              </div>
+            </div>
+            <p className="text-gray-400">
+              Portal personal para acceso a recursos institucionales y herramientas de gestión.
+            </p>
+          </div>
+          
+          <div>
+            <h4 className="text-lg font-semibold mb-4">Enlaces Rápidos</h4>
+            <ul className="space-y-2">
+              <li><a href="#hero" className="text-gray-400 hover:text-white transition-colors">Inicio</a></li>
+              <li><a href="#presentaciones" className="text-gray-400 hover:text-white transition-colors">Presentaciones</a></li>
+              <li><a href="#tablas" className="text-gray-400 hover:text-white transition-colors">Tablas</a></li>
+              <li><a href="#dashboard" className="text-gray-400 hover:text-white transition-colors">Dashboards</a></li>
+              <li><a href={resources.notion?.url} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">Notion Dashboard</a></li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 className="text-lg font-semibold mb-4">IMSS Bienestar</h4>
+            <p className="text-gray-400 mb-4">
+              Instituto Mexicano del Seguro Social Bienestar
+            </p>
+            <a
+              href="https://imssbienestar.gob.mx/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              Sitio Oficial
+              <i data-lucide="external-link" className="w-4 h-4 ml-1"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div className="border-t border-gray-800 mt-8 pt-8 text-center">
+          <p className="text-gray-400">
+            © 2025 Dr. Alejandro Svarch - IMSS Bienestar. Todos los derechos reservados.
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+
+  // Aplicar tema al body
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+
+  // Inicializar iconos de Lucide
+  useEffect(() => {
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
+  }, []);
+
+  return (
+    <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
+      <Header />
+      <main>
+        <Hero />
+        <PresentacionesSection />
+        <TablasSection />
+        <DashboardSection />
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
+// Renderizar la aplicación
+ReactDOM.render(<SvarchApp />, document.getElementById('root'));
