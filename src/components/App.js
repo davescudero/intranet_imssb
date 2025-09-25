@@ -384,36 +384,36 @@ const SvarchApp = () => {
     </section>
   );
 
-  // Componente de búsqueda
+  // Componente de búsqueda minimalista
   const SearchComponent = () => (
-    <div className="relative max-w-2xl mx-auto px-6 lg:px-8 mb-16">
+    <div className="relative max-w-xl mx-auto px-6 lg:px-8 mb-20">
       <div className="relative search-container">
-        {/* Campo de búsqueda */}
+        {/* Campo de búsqueda minimalista */}
         <div className="relative">
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
             onFocus={() => searchQuery && setShowSearchResults(true)}
-            placeholder="Buscar dashboards, presentaciones, tablas..."
-            className="w-full px-6 py-4 pl-14 pr-4 text-lg bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-2xl shadow-lg focus:outline-none focus:ring-2 focus:ring-imss-primary focus:border-transparent transition-all duration-300 placeholder-gray-500 dark:placeholder-gray-400"
+            placeholder="Buscar..."
+            className="w-full px-4 py-3 pl-12 pr-4 text-base bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-full shadow-sm focus:outline-none focus:ring-1 focus:ring-imss-primary/50 focus:border-imss-primary/50 transition-all duration-300 placeholder-gray-400 dark:placeholder-gray-500 text-gray-700 dark:text-gray-300"
           />
           
-          {/* Icono de lupa */}
-          <div className="absolute left-5 top-1/2 transform -translate-y-1/2">
-            <svg className="w-6 h-6 text-imss-primary dark:text-imss-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          {/* Icono de lupa minimalista */}
+          <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+            <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <circle cx="11" cy="11" r="8"></circle>
               <path d="m21 21-4.35-4.35"></path>
             </svg>
           </div>
           
-          {/* Botón de limpiar */}
+          {/* Botón de limpiar sutil */}
           {searchQuery && (
             <button
               onClick={closeSearchResults}
-              className="absolute right-5 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-imss-primary dark:hover:text-imss-accent transition-colors duration-200"
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-300 hover:text-gray-500 dark:text-gray-600 dark:hover:text-gray-400 transition-colors duration-200"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
@@ -421,19 +421,19 @@ const SvarchApp = () => {
           )}
         </div>
 
-        {/* Resultados de búsqueda */}
+        {/* Resultados de búsqueda minimalistas */}
         {showSearchResults && searchResults.length > 0 && (
-          <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl z-50 max-h-80 overflow-y-auto">
+          <div className="absolute top-full left-0 right-0 mt-3 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg border border-gray-200/50 dark:border-gray-700/50 rounded-xl shadow-lg z-50 max-h-72 overflow-y-auto">
             {searchResults.map((result, index) => (
               <button
                 key={index}
                 onClick={() => selectSearchResult(result)}
-                className="w-full px-6 py-4 text-left hover:bg-imss-primary/5 dark:hover:bg-imss-accent/5 transition-colors duration-200 border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                className="w-full px-4 py-3 text-left hover:bg-gray-50/80 dark:hover:bg-gray-700/50 transition-colors duration-200 border-b border-gray-100/50 dark:border-gray-700/30 last:border-b-0"
               >
-                <div className="flex items-center space-x-4">
-                  {/* Icono */}
-                  <div className="w-10 h-10 bg-imss-primary/10 dark:bg-imss-accent/10 rounded-lg flex items-center justify-center">
-                    <svg className="w-5 h-5 text-imss-primary dark:text-imss-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex items-center space-x-3">
+                  {/* Icono minimalista */}
+                  <div className="w-8 h-8 bg-gray-100/80 dark:bg-gray-700/80 rounded-lg flex items-center justify-center">
+                    <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       {result.icon === 'activity' && (
                         <>
                           <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
@@ -459,21 +459,17 @@ const SvarchApp = () => {
                   
                   {/* Contenido */}
                   <div className="flex-1">
-                    <h3 className="font-semibold text-imss-dark dark:text-white text-lg">
+                    <h3 className="font-medium text-gray-800 dark:text-gray-200 text-sm">
                       {result.title}
                     </h3>
-                    <p className="text-sm text-imss-gray dark:text-gray-400 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                       {result.description}
                     </p>
-                    <span className="inline-block mt-2 px-3 py-1 bg-imss-primary/10 dark:bg-imss-accent/10 text-imss-primary dark:text-imss-accent text-xs font-medium rounded-full">
-                      {result.type === 'dashboard' ? 'Dashboard' : 
-                       result.type === 'presentation' ? 'Presentación' : 'Tabla'}
-                    </span>
                   </div>
                   
-                  {/* Flecha */}
-                  <div className="text-imss-primary dark:text-imss-accent">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {/* Flecha sutil */}
+                  <div className="text-gray-400 dark:text-gray-500">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <line x1="5" y1="12" x2="19" y2="12"></line>
                       <polyline points="12,5 19,12 12,19"></polyline>
                     </svg>
@@ -486,14 +482,14 @@ const SvarchApp = () => {
 
         {/* Mensaje cuando no hay resultados */}
         {showSearchResults && searchResults.length === 0 && searchQuery && (
-          <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl z-50 p-6 text-center">
-            <div className="text-imss-gray dark:text-gray-400">
-              <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="absolute top-full left-0 right-0 mt-3 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg border border-gray-200/50 dark:border-gray-700/50 rounded-xl shadow-lg z-50 p-4 text-center">
+            <div className="text-gray-500 dark:text-gray-400">
+              <svg className="w-8 h-8 mx-auto mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <circle cx="11" cy="11" r="8"></circle>
                 <path d="m21 21-4.35-4.35"></path>
               </svg>
-              <p className="text-lg font-medium">No se encontraron resultados</p>
-              <p className="text-sm mt-1">Intenta con otras palabras clave</p>
+              <p className="text-sm font-medium">Sin resultados</p>
+              <p className="text-xs mt-1">Prueba con otras palabras</p>
             </div>
           </div>
         )}

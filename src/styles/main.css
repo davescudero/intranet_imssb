@@ -1227,6 +1227,36 @@ h1, h2, h3, h4, h5, h6 {
 
 /* === ESTILOS DE BÚSQUEDA === */
 
+/* Barra de búsqueda minimalista integrada */
+.search-container {
+  position: relative;
+}
+
+.search-container input {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.search-container input:focus {
+  transform: scale(1.02);
+  box-shadow: 0 8px 25px rgba(155, 34, 71, 0.15);
+}
+
+.dark .search-container input:focus {
+  box-shadow: 0 8px 25px rgba(165, 127, 44, 0.15);
+}
+
+/* Efecto de búsqueda integrada */
+.search-integrated {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .search-integrated {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 /* Efectos de búsqueda y destacado */
 .search-highlight {
   animation: search-pulse 3s ease-in-out;
