@@ -7,6 +7,12 @@ const SvarchApp = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [scrollY, setScrollY] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  
+  // Estado para la búsqueda
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [highlightedElement, setHighlightedElement] = useState(null);
 
   // Función para cambiar tema
   const handleThemeToggle = () => {
@@ -114,6 +120,18 @@ const SvarchApp = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMenuOpen]);
 
+  // Cerrar resultados de búsqueda al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showSearchResults && !event.target.closest('.search-container')) {
+        setShowSearchResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showSearchResults]);
+
   // Configuración de recursos desde la configuración global
   const config = window.SvarchConfig || {};
   const resources = config.resources || {};
@@ -206,14 +224,107 @@ const SvarchApp = () => {
 
   // Función para obtener saludo según la hora
   const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) {
-      return "Buenos días";
-    } else if (hour >= 12 && hour < 18) {
-      return "Buenas tardes";
-    } else {
-      return "Buenas noches";
+    return "Servicios Públicos de Salud";
+  };
+
+  // Función para buscar elementos
+  const searchElements = (query) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
     }
+
+    const results = [];
+    const lowerQuery = query.toLowerCase();
+
+    // Buscar en dashboards
+    window.SvarchConfig.resources.dashboards.forEach((dashboard, index) => {
+      if (dashboard.title.toLowerCase().includes(lowerQuery) || 
+          dashboard.description.toLowerCase().includes(lowerQuery)) {
+        results.push({
+          type: 'dashboard',
+          title: dashboard.title,
+          description: dashboard.description,
+          icon: dashboard.icon,
+          url: dashboard.url,
+          sectionId: 'dashboard',
+          elementId: `dashboard-${index}`
+        });
+      }
+    });
+
+    // Buscar en presentaciones
+    window.SvarchConfig.resources.presentations.forEach((presentation, index) => {
+      if (presentation.title.toLowerCase().includes(lowerQuery) || 
+          presentation.description.toLowerCase().includes(lowerQuery)) {
+        results.push({
+          type: 'presentation',
+          title: presentation.title,
+          description: presentation.description,
+          icon: presentation.icon,
+          url: presentation.url,
+          sectionId: 'presentaciones',
+          elementId: `presentation-${index}`
+        });
+      }
+    });
+
+    // Buscar en tablas
+    window.SvarchConfig.resources.tables.forEach((table, index) => {
+      if (table.title.toLowerCase().includes(lowerQuery) || 
+          table.description.toLowerCase().includes(lowerQuery)) {
+        results.push({
+          type: 'table',
+          title: table.title,
+          description: table.description,
+          icon: table.icon,
+          url: table.url,
+          sectionId: 'tablas',
+          elementId: `table-${index}`
+        });
+      }
+    });
+
+    setSearchResults(results);
+    setShowSearchResults(results.length > 0);
+  };
+
+  // Función para manejar la búsqueda
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    searchElements(query);
+  };
+
+  // Función para seleccionar un resultado de búsqueda
+  const selectSearchResult = (result) => {
+    setSearchQuery('');
+    setShowSearchResults(false);
+    
+    // Scroll suave a la sección
+    const section = document.getElementById(result.sectionId);
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth' });
+      
+      // Destacar el elemento específico
+      setTimeout(() => {
+        const element = document.getElementById(result.elementId);
+        if (element) {
+          setHighlightedElement(result.elementId);
+          
+          // Remover el destacado después de 3 segundos
+          setTimeout(() => {
+            setHighlightedElement(null);
+          }, 3000);
+        }
+      }, 500);
+    }
+  };
+
+  // Función para cerrar resultados de búsqueda
+  const closeSearchResults = () => {
+    setShowSearchResults(false);
+    setSearchQuery('');
   };
 
   // Componente de Hero editorial minimalista
@@ -254,11 +365,11 @@ const SvarchApp = () => {
           {/* Nombre y título principal */}
           <div className="mb-12">
             <h1 className="text-6xl md:text-8xl font-bold text-imss-dark dark:text-white mb-6 hero-title font-serif leading-tight">
-              Dr. Alejandro Svarch
+              Servicios Públicos de Salud
             </h1>
             <div className="w-32 h-px bg-gradient-to-r from-transparent via-imss-gray dark:via-gray-400 to-transparent mx-auto mb-6"></div>
             <p className="text-2xl md:text-3xl text-imss-secondary dark:text-gray-300 mb-4 hero-subtitle font-serif font-light">
-              Director General de IMSS Bienestar
+              Dirección General de IMSS Bienestar
             </p>
           </div>
           
@@ -271,6 +382,123 @@ const SvarchApp = () => {
         </div>
       </div>
     </section>
+  );
+
+  // Componente de búsqueda
+  const SearchComponent = () => (
+    <div className="relative max-w-2xl mx-auto px-6 lg:px-8 mb-16">
+      <div className="relative search-container">
+        {/* Campo de búsqueda */}
+        <div className="relative">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
+            onFocus={() => searchQuery && setShowSearchResults(true)}
+            placeholder="Buscar dashboards, presentaciones, tablas..."
+            className="w-full px-6 py-4 pl-14 pr-4 text-lg bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-2xl shadow-lg focus:outline-none focus:ring-2 focus:ring-imss-primary focus:border-transparent transition-all duration-300 placeholder-gray-500 dark:placeholder-gray-400"
+          />
+          
+          {/* Icono de lupa */}
+          <div className="absolute left-5 top-1/2 transform -translate-y-1/2">
+            <svg className="w-6 h-6 text-imss-primary dark:text-imss-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+          </div>
+          
+          {/* Botón de limpiar */}
+          {searchQuery && (
+            <button
+              onClick={closeSearchResults}
+              className="absolute right-5 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-imss-primary dark:hover:text-imss-accent transition-colors duration-200"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          )}
+        </div>
+
+        {/* Resultados de búsqueda */}
+        {showSearchResults && searchResults.length > 0 && (
+          <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl z-50 max-h-80 overflow-y-auto">
+            {searchResults.map((result, index) => (
+              <button
+                key={index}
+                onClick={() => selectSearchResult(result)}
+                className="w-full px-6 py-4 text-left hover:bg-imss-primary/5 dark:hover:bg-imss-accent/5 transition-colors duration-200 border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+              >
+                <div className="flex items-center space-x-4">
+                  {/* Icono */}
+                  <div className="w-10 h-10 bg-imss-primary/10 dark:bg-imss-accent/10 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 text-imss-primary dark:text-imss-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      {result.icon === 'activity' && (
+                        <>
+                          <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                        </>
+                      )}
+                      {result.icon === 'presentation' && (
+                        <>
+                          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                          <line x1="8" y1="21" x2="16" y2="21"></line>
+                          <line x1="12" y1="17" x2="12" y2="21"></line>
+                        </>
+                      )}
+                      {result.icon === 'grid-3x3' && (
+                        <>
+                          <rect x="3" y="3" width="7" height="7"></rect>
+                          <rect x="14" y="3" width="7" height="7"></rect>
+                          <rect x="14" y="14" width="7" height="7"></rect>
+                          <rect x="3" y="14" width="7" height="7"></rect>
+                        </>
+                      )}
+                    </svg>
+                  </div>
+                  
+                  {/* Contenido */}
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-imss-dark dark:text-white text-lg">
+                      {result.title}
+                    </h3>
+                    <p className="text-sm text-imss-gray dark:text-gray-400 mt-1">
+                      {result.description}
+                    </p>
+                    <span className="inline-block mt-2 px-3 py-1 bg-imss-primary/10 dark:bg-imss-accent/10 text-imss-primary dark:text-imss-accent text-xs font-medium rounded-full">
+                      {result.type === 'dashboard' ? 'Dashboard' : 
+                       result.type === 'presentation' ? 'Presentación' : 'Tabla'}
+                    </span>
+                  </div>
+                  
+                  {/* Flecha */}
+                  <div className="text-imss-primary dark:text-imss-accent">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                      <polyline points="12,5 19,12 12,19"></polyline>
+                    </svg>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Mensaje cuando no hay resultados */}
+        {showSearchResults && searchResults.length === 0 && searchQuery && (
+          <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl z-50 p-6 text-center">
+            <div className="text-imss-gray dark:text-gray-400">
+              <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+              </svg>
+              <p className="text-lg font-medium">No se encontraron resultados</p>
+              <p className="text-sm mt-1">Intenta con otras palabras clave</p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 
   // Componente de Dashboard Principal
@@ -289,8 +517,11 @@ const SvarchApp = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {resources.dashboards?.map((dashboard, index) => (
             <div 
-              key={index} 
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-200 dark:border-gray-700 hover:border-imss-primary dark:hover:border-imss-accent"
+              key={index}
+              id={`dashboard-${index}`}
+              className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-200 dark:border-gray-700 hover:border-imss-primary dark:hover:border-imss-accent ${
+                highlightedElement === `dashboard-${index}` ? (isDarkMode ? 'search-glow-dark search-bounce' : 'search-glow search-bounce') : ''
+              }`}
             >
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-imss-light dark:bg-imss-primary/20 rounded-lg flex items-center justify-center mr-4">
@@ -336,7 +567,10 @@ const SvarchApp = () => {
           {resources.presentations?.map((presentation, index) => (
             <div 
               key={index}
-              className="bg-gray-50 dark:bg-gray-900 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-200 dark:border-gray-700 hover:border-imss-secondary dark:hover:border-imss-accent"
+              id={`presentation-${index}`}
+              className={`bg-gray-50 dark:bg-gray-900 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-200 dark:border-gray-700 hover:border-imss-secondary dark:hover:border-imss-accent ${
+                highlightedElement === `presentation-${index}` ? (isDarkMode ? 'search-glow-dark search-bounce' : 'search-glow search-bounce') : ''
+              }`}
             >
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-imss-light dark:bg-imss-secondary/20 rounded-lg flex items-center justify-center mr-4">
@@ -382,7 +616,10 @@ const SvarchApp = () => {
           {resources.tables?.map((table, index) => (
             <div
               key={index}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-200 dark:border-gray-700 hover:border-imss-accent dark:hover:border-imss-light"
+              id={`table-${index}`}
+              className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-200 dark:border-gray-700 hover:border-imss-accent dark:hover:border-imss-light ${
+                highlightedElement === `table-${index}` ? (isDarkMode ? 'search-glow-dark search-bounce' : 'search-glow search-bounce') : ''
+              }`}
             >
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-imss-light dark:bg-imss-accent/20 rounded-lg flex items-center justify-center mr-4">
@@ -493,6 +730,7 @@ const SvarchApp = () => {
       <Header />
       <main>
         <Hero />
+        <SearchComponent />
         <PresentacionesSection />
         <TablasSection />
         <DashboardSection />
