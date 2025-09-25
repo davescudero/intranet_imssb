@@ -13,6 +13,9 @@ const SvarchApp = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [highlightedElement, setHighlightedElement] = useState(null);
+  
+  // Estado para controlar animación del hero solo una vez
+  const [heroAnimationPlayed, setHeroAnimationPlayed] = useState(false);
 
   // Función para cambiar tema
   const handleThemeToggle = () => {
@@ -72,6 +75,9 @@ const SvarchApp = () => {
     if (window.lucide) {
       window.lucide.createIcons();
     }
+
+    // Marcar que la animación del hero ya se ejecutó
+    setHeroAnimationPlayed(true);
 
     // Escuchar cambios en la preferencia del sistema (solo si no hay preferencia guardada)
     const handler = (e) => {
@@ -355,7 +361,7 @@ const SvarchApp = () => {
       <div className="relative z-20 max-w-6xl mx-auto px-6 lg:px-8">
         <div className="text-center">
           {/* Saludo dinámico */}
-          <div className="mb-8 hero-greeting">
+          <div className={`mb-8 ${heroAnimationPlayed ? 'hero-greeting' : ''}`}>
             <h2 className="text-lg md:text-xl font-light text-imss-primary dark:text-imss-accent mb-3 tracking-wider uppercase font-sans">
               {getGreeting()}
             </h2>
@@ -364,138 +370,139 @@ const SvarchApp = () => {
           
           {/* Nombre y título principal */}
           <div className="mb-12">
-            <h1 className="text-6xl md:text-8xl font-bold text-imss-dark dark:text-white mb-6 hero-title font-serif leading-tight">
+            <h1 className={`text-6xl md:text-8xl font-bold text-imss-dark dark:text-white mb-6 font-serif leading-tight ${heroAnimationPlayed ? 'hero-title' : ''}`}>
               Servicios Públicos de Salud
             </h1>
             <div className="w-32 h-px bg-gradient-to-r from-transparent via-imss-gray dark:via-gray-400 to-transparent mx-auto mb-6"></div>
-            <p className="text-2xl md:text-3xl text-imss-secondary dark:text-gray-300 mb-4 hero-subtitle font-serif font-light">
+            <p className={`text-2xl md:text-3xl text-imss-secondary dark:text-gray-300 mb-4 font-serif font-light ${heroAnimationPlayed ? 'hero-subtitle' : ''}`}>
               Dirección General de IMSS Bienestar
             </p>
           </div>
           
           {/* Descripción editorial */}
           <div className="max-w-4xl mx-auto">
-            <p className="text-lg md:text-xl text-imss-gray dark:text-gray-400 leading-relaxed hero-description font-sans font-light">
+            <p className={`text-lg md:text-xl text-imss-gray dark:text-gray-400 leading-relaxed font-sans font-light ${heroAnimationPlayed ? 'hero-description' : ''}`}>
               Repositorio personal para acceso a presentaciones y dashboards ejecutivos
             </p>
+          </div>
+          
+          {/* Barra de búsqueda integrada en el hero */}
+          <div className="mt-16">
+            <div className="relative max-w-xl mx-auto">
+              <div className="relative search-container">
+                {/* Campo de búsqueda minimalista integrado */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    onFocus={() => searchQuery && setShowSearchResults(true)}
+                    placeholder="Buscar..."
+                    className="w-full px-4 py-3 pl-12 pr-4 text-base bg-white/40 dark:bg-gray-800/40 backdrop-blur-md border border-white/30 dark:border-gray-700/30 rounded-full shadow-sm focus:outline-none focus:ring-1 focus:ring-white/50 focus:border-white/50 transition-all duration-300 placeholder-gray-500 dark:placeholder-gray-400 text-gray-700 dark:text-gray-300"
+                  />
+                  
+                  {/* Icono de lupa minimalista */}
+                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+                    <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                  </div>
+                  
+                  {/* Botón de limpiar sutil */}
+                  {searchQuery && (
+                    <button
+                      onClick={closeSearchResults}
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors duration-200"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
+                  )}
+                </div>
+
+                {/* Resultados de búsqueda minimalistas */}
+                {showSearchResults && searchResults.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-3 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg border border-gray-200/50 dark:border-gray-700/50 rounded-xl shadow-lg z-50 max-h-72 overflow-y-auto">
+                    {searchResults.map((result, index) => (
+                      <button
+                        key={index}
+                        onClick={() => selectSearchResult(result)}
+                        className="w-full px-4 py-3 text-left hover:bg-gray-50/80 dark:hover:bg-gray-700/50 transition-colors duration-200 border-b border-gray-100/50 dark:border-gray-700/30 last:border-b-0"
+                      >
+                        <div className="flex items-center space-x-3">
+                          {/* Icono minimalista */}
+                          <div className="w-8 h-8 bg-gray-100/80 dark:bg-gray-700/80 rounded-lg flex items-center justify-center">
+                            <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              {result.icon === 'activity' && (
+                                <>
+                                  <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                                </>
+                              )}
+                              {result.icon === 'presentation' && (
+                                <>
+                                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                  <line x1="8" y1="21" x2="16" y2="21"></line>
+                                  <line x1="12" y1="17" x2="12" y2="21"></line>
+                                </>
+                              )}
+                              {result.icon === 'grid-3x3' && (
+                                <>
+                                  <rect x="3" y="3" width="7" height="7"></rect>
+                                  <rect x="14" y="3" width="7" height="7"></rect>
+                                  <rect x="14" y="14" width="7" height="7"></rect>
+                                  <rect x="3" y="14" width="7" height="7"></rect>
+                                </>
+                              )}
+                            </svg>
+                          </div>
+                          
+                          {/* Contenido */}
+                          <div className="flex-1">
+                            <h3 className="font-medium text-gray-800 dark:text-gray-200 text-sm">
+                              {result.title}
+                            </h3>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                              {result.description}
+                            </p>
+                          </div>
+                          
+                          {/* Flecha sutil */}
+                          <div className="text-gray-400 dark:text-gray-500">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <line x1="5" y1="12" x2="19" y2="12"></line>
+                              <polyline points="12,5 19,12 12,19"></polyline>
+                            </svg>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Mensaje cuando no hay resultados */}
+                {showSearchResults && searchResults.length === 0 && searchQuery && (
+                  <div className="absolute top-full left-0 right-0 mt-3 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg border border-gray-200/50 dark:border-gray-700/50 rounded-xl shadow-lg z-50 p-4 text-center">
+                    <div className="text-gray-500 dark:text-gray-400">
+                      <svg className="w-8 h-8 mx-auto mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                      </svg>
+                      <p className="text-sm font-medium">Sin resultados</p>
+                      <p className="text-xs mt-1">Prueba con otras palabras</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </section>
   );
 
-  // Componente de búsqueda minimalista
-  const SearchComponent = () => (
-    <div className="relative max-w-xl mx-auto px-6 lg:px-8 mb-20">
-      <div className="relative search-container">
-        {/* Campo de búsqueda minimalista */}
-        <div className="relative">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => handleSearch(e.target.value)}
-            onFocus={() => searchQuery && setShowSearchResults(true)}
-            placeholder="Buscar..."
-            className="w-full px-4 py-3 pl-12 pr-4 text-base bg-white/60 dark:bg-gray-800/60 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-full shadow-sm focus:outline-none focus:ring-1 focus:ring-imss-primary/50 focus:border-imss-primary/50 transition-all duration-300 placeholder-gray-400 dark:placeholder-gray-500 text-gray-700 dark:text-gray-300"
-          />
-          
-          {/* Icono de lupa minimalista */}
-          <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-            <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
-          </div>
-          
-          {/* Botón de limpiar sutil */}
-          {searchQuery && (
-            <button
-              onClick={closeSearchResults}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-300 hover:text-gray-500 dark:text-gray-600 dark:hover:text-gray-400 transition-colors duration-200"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          )}
-        </div>
-
-        {/* Resultados de búsqueda minimalistas */}
-        {showSearchResults && searchResults.length > 0 && (
-          <div className="absolute top-full left-0 right-0 mt-3 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg border border-gray-200/50 dark:border-gray-700/50 rounded-xl shadow-lg z-50 max-h-72 overflow-y-auto">
-            {searchResults.map((result, index) => (
-              <button
-                key={index}
-                onClick={() => selectSearchResult(result)}
-                className="w-full px-4 py-3 text-left hover:bg-gray-50/80 dark:hover:bg-gray-700/50 transition-colors duration-200 border-b border-gray-100/50 dark:border-gray-700/30 last:border-b-0"
-              >
-                <div className="flex items-center space-x-3">
-                  {/* Icono minimalista */}
-                  <div className="w-8 h-8 bg-gray-100/80 dark:bg-gray-700/80 rounded-lg flex items-center justify-center">
-                    <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      {result.icon === 'activity' && (
-                        <>
-                          <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-                        </>
-                      )}
-                      {result.icon === 'presentation' && (
-                        <>
-                          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                          <line x1="8" y1="21" x2="16" y2="21"></line>
-                          <line x1="12" y1="17" x2="12" y2="21"></line>
-                        </>
-                      )}
-                      {result.icon === 'grid-3x3' && (
-                        <>
-                          <rect x="3" y="3" width="7" height="7"></rect>
-                          <rect x="14" y="3" width="7" height="7"></rect>
-                          <rect x="14" y="14" width="7" height="7"></rect>
-                          <rect x="3" y="14" width="7" height="7"></rect>
-                        </>
-                      )}
-                    </svg>
-                  </div>
-                  
-                  {/* Contenido */}
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-800 dark:text-gray-200 text-sm">
-                      {result.title}
-                    </h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                      {result.description}
-                    </p>
-                  </div>
-                  
-                  {/* Flecha sutil */}
-                  <div className="text-gray-400 dark:text-gray-500">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                      <polyline points="12,5 19,12 12,19"></polyline>
-                    </svg>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Mensaje cuando no hay resultados */}
-        {showSearchResults && searchResults.length === 0 && searchQuery && (
-          <div className="absolute top-full left-0 right-0 mt-3 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg border border-gray-200/50 dark:border-gray-700/50 rounded-xl shadow-lg z-50 p-4 text-center">
-            <div className="text-gray-500 dark:text-gray-400">
-              <svg className="w-8 h-8 mx-auto mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <circle cx="11" cy="11" r="8"></circle>
-                <path d="m21 21-4.35-4.35"></path>
-              </svg>
-              <p className="text-sm font-medium">Sin resultados</p>
-              <p className="text-xs mt-1">Prueba con otras palabras</p>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
 
   // Componente de Dashboard Principal
   const DashboardSection = () => (
@@ -726,7 +733,6 @@ const SvarchApp = () => {
       <Header />
       <main>
         <Hero />
-        <SearchComponent />
         <PresentacionesSection />
         <TablasSection />
         <DashboardSection />
