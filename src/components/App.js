@@ -149,17 +149,14 @@ const SvarchApp = () => {
     }`}>
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-          {/* Logo y Dirección General */}
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 rounded-lg overflow-hidden shadow-lg">
+          {/* Logo grande */}
+          <div className="flex items-center">
+            <div className="w-24 h-24 rounded-xl overflow-hidden shadow-xl">
               <img 
                 src="resources/logos/Logo IMSS Bienestar 2025.png" 
                 alt="IMSS Bienestar Logo" 
                 className="w-full h-full object-contain"
               />
-            </div>
-            <div>
-              <h1 className="text-lg font-semibold text-imss-dark dark:text-white font-serif">Dirección General</h1>
             </div>
           </div>
           
